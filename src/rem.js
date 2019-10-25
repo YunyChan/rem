@@ -2,11 +2,16 @@
     var oHtml = oDoc.documentElement;
     var tid;
     var oREMMeta = oDoc.getElementById("remMeta");
-    var maxWidth = oREMMeta.getAttribute('data-max-width') - 0; // 视觉稿宽度
-    var minWidth = (oREMMeta.getAttribute('data-min-width') || 1) - 0; // 屏幕要适配的最小分辨率宽度
-    var maxFontSize = oREMMeta.getAttribute('data-max-font') - 0; // 视觉稿宽度所对应根字号基值
-    var step = maxWidth / maxFontSize;
-    var minFontSize = Math.floor(minWidth / step);
+    if(!oREMMeta){
+        return;
+    }
+    var side = oREMMeta.getAttribute('data-side');
+    var max = oREMMeta.getAttribute('data-max') - 0; // 视觉稿宽度
+    var min = (oREMMeta.getAttribute('data-min') || 1) - 0; // 屏幕要适配的最小分辨率宽度
+
+    var maxFont = oREMMeta.getAttribute('data-font') - 0; // 视觉稿宽度所对应根字号基值
+    var step = max / maxFont;
+    var minFont = Math.round(min / step);
     var DPR = setDPR();
     var scale = setViewPort();
 
@@ -18,13 +23,13 @@
 
     function setDPR() {
         var nDPR = 1;
-        var isIPhone = oWin.navigator.appVersion.match(/iphone/gi);
-        if(isIPhone){
-            nDPR = Math.ceil(oWin.devicePixelRatio) || 1;
-            if(nDPR > 3){
-                nDPR = 3;
-            }
-        }
+        // var isIPhone = oWin.navigator.appVersion.match(/iphone/gi);
+        // if(isIPhone){
+        //     nDPR = Math.ceil(oWin.devicePixelRatio) || 1;
+        //     if(nDPR > 3){
+        //         nDPR = 3;
+        //     }
+        // }
         oHtml.setAttribute('data-dpr', nDPR);
         return nDPR;
     }
@@ -47,17 +52,21 @@
     }
 
     function setRootFontSize(){
-        var clientPhysicalWidth = oHtml.getBoundingClientRect().width;
+        //alert('srceen:' + oWin.screen.height);
+        //alert('innerHeight:' + oWin.innerHeight);
+        //alert('body.clientHeight:' + oDoc.body.clientHeight);
+        // 注意：此处可使用window.innerHeight是因为整个body设置了overflow:hidden;禁止了滚动条的出现
+        var clientPhysicalWidth = side == 'height' ? oWin.innerHeight : oHtml.getBoundingClientRect().width;
         var clientVirtualWidth = clientPhysicalWidth * scale;
 
         var rootFontSize = 0;
-        if(clientVirtualWidth >= maxWidth){
+        if(clientVirtualWidth >= max){
             // rootFontSize = Math.floor(clientVirtualWidth / step);
-            rootFontSize = maxFontSize;
-        }else if(clientVirtualWidth <= minWidth){
-            rootFontSize = minFontSize;
+            rootFontSize = maxFont;
+        }else if(clientVirtualWidth <= min){
+            rootFontSize = minFont;
         }else{
-            rootFontSize = Math.floor(clientVirtualWidth / step);
+            rootFontSize = Math.round(clientVirtualWidth / step);
         }
         rootFontSize *= DPR;
 
